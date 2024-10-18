@@ -1,11 +1,9 @@
 import { ObjectId } from "mongodb";
 
-import { Router, getExpressRouter } from "./framework/router";
+import { getExpressRouter, Router } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning } from "./app";
-import { PostOptions } from "./concepts/posting";
+import { Authing, Chatting, Locating, Matching, SafeMeeting, Sessioning, UserProfiling } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
-import Responses from "./responses";
 
 import { z } from "zod";
 
@@ -70,87 +68,134 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
-  @Router.get("/posts")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getPosts(author?: string) {
-    let posts;
-    if (author) {
-      const id = (await Authing.getUserByUsername(author))._id;
-      posts = await Posting.getByAuthor(id);
-    } else {
-      posts = await Posting.getPosts();
+  // Matching functionality
+  @Router.post("/rate")
+  @Router.validate(z.object({ targetUserId: z.string(), like: z.boolean() }))
+  async rateUser(sessionId: ObjectId, targetUserId: ObjectId, like: boolean) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
     }
-    return Responses.posts(posts);
+    await Matching.rateUser(new ObjectId(session.user), targetUserId, like); // Ensure ObjectId
+    return { msg: "Rating submitted!" };
   }
 
-  @Router.post("/posts")
-  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
-    const user = Sessioning.getUser(session);
-    const created = await Posting.create(user, content, options);
-    return { msg: created.msg, post: await Responses.post(created.post) };
+  // Chatting functionality
+  @Router.post("/chatting")
+  @Router.validate(z.object({ targetUserId: z.string() }))
+  async startChat(sessionId: ObjectId, targetUserId: ObjectId) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const chat = await Chatting.startSession([new ObjectId(session.user), targetUserId]); // Ensure ObjectId
+    return { msg: "Chat began!", chat };
   }
 
-  @Router.patch("/posts/:id")
-  async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
-    const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Posting.assertAuthorIsUser(oid, user);
-    return await Posting.update(oid, content, options);
+  @Router.get("/chatting")
+  async getChats(sessionId: ObjectId) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const chats = await Chatting.getMessages(new ObjectId(session.user)); // Ensure ObjectId
+    return { msg: "Chats retrieved.", chats };
   }
 
-  @Router.delete("/posts/:id")
-  async deletePost(session: SessionDoc, id: string) {
-    const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Posting.assertAuthorIsUser(oid, user);
-    return Posting.delete(oid);
+  @Router.delete("/chatting/:id")
+  async endChat(chatId: ObjectId) {
+    await Chatting.endSession(chatId); // Correct method: endSession
+    return { msg: "Chat ended. Find another match soon?" };
   }
 
-  @Router.get("/friends")
-  async getFriends(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    return await Authing.idsToUsernames(await Friending.getFriends(user));
+  // SafeMeeting functionality
+  @Router.get("/meetings")
+  async listMeetings(sessionId: ObjectId) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const meetings = await SafeMeeting.getMeetings(new ObjectId(session.user)); // Ensure ObjectId
+    return { msg: "Meetings retrieved.", meetings };
   }
 
-  @Router.delete("/friends/:friend")
-  async removeFriend(session: SessionDoc, friend: string) {
-    const user = Sessioning.getUser(session);
-    const friendOid = (await Authing.getUserByUsername(friend))._id;
-    return await Friending.removeFriend(user, friendOid);
+  @Router.post("/meetings")
+  @Router.validate(
+    z.object({
+      receiverId: z.string(),
+      date: z.string(), // String to hold the date value
+      time: z.string(), // String to hold the time value
+      location: z.string(),
+      emergencyContact: z.string().min(10).max(15), // Validation for emergency contact
+    }),
+  )
+  async proposeMeeting(sessionId: ObjectId, receiverId: ObjectId, date: string, time: string, location: string, emergencyContact: string) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const meeting = await SafeMeeting.proposeMeeting(new ObjectId(session.user), receiverId, new Date(date), time, location, emergencyContact);
+    return { msg: "Meeting proposed!", meeting };
   }
 
-  @Router.get("/friend/requests")
-  async getRequests(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    return await Responses.friendRequests(await Friending.getRequests(user));
+  @Router.delete("/meetings/:id")
+  async cancelMeeting(meetingId: ObjectId) {
+    await SafeMeeting.denyMeeting(meetingId); // Correct method: cancelMeeting
+    return { msg: "Meeting canceled." };
   }
 
-  @Router.post("/friend/requests/:to")
-  async sendFriendRequest(session: SessionDoc, to: string) {
-    const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.sendRequest(user, toOid);
+  // Locating functionality
+  // Locating functionality
+  @Router.get("/locating")
+  async showLocation(sessionId: ObjectId) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const locationDetails = await Locating.viewLocation(new ObjectId(session.user));
+    return { msg: "Location found!", location: locationDetails };
   }
 
-  @Router.delete("/friend/requests/:to")
-  async removeFriendRequest(session: SessionDoc, to: string) {
-    const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.removeRequest(user, toOid);
+  @Router.post("/locating")
+  @Router.validate(z.object({ share: z.boolean() }))
+  async updateLocationSharing(sessionId: ObjectId, share: boolean) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    await Locating.setLocationSharing(new ObjectId(session.user), share);
+    return { msg: `Location sharing ${share ? "enabled" : "disabled"}.` };
   }
 
-  @Router.put("/friend/accept/:from")
-  async acceptFriendRequest(session: SessionDoc, from: string) {
-    const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
-    return await Friending.acceptRequest(fromOid, user);
+  // UserProfiling functionality
+  @Router.patch("/profile")
+  @Router.validate(
+    z.object({
+      gender: z.string(),
+      age: z.number(),
+      travelStyle: z.string(),
+      location: z.string(),
+      question_1: z.string(),
+      question_2: z.string(),
+    }),
+  )
+  async updateProfile(sessionId: ObjectId, profileDetails: any) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    await UserProfiling.updateProfile(new ObjectId(session.user), profileDetails); // Ensure ObjectId
+    return { msg: "Profile updated!" };
   }
 
-  @Router.put("/friend/reject/:from")
-  async rejectFriendRequest(session: SessionDoc, from: string) {
-    const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
-    return await Friending.rejectRequest(fromOid, user);
+  @Router.get("/profile")
+  async getProfile(sessionId: ObjectId) {
+    const session = await Sessioning.getSession(sessionId);
+    if (!session.user) {
+      throw new Error("User not authenticated.");
+    }
+    const profile = await UserProfiling.getProfile(new ObjectId(session.user)); // Ensure ObjectId
+    return { msg: "Profile retrieved.", profile };
   }
 }
 
