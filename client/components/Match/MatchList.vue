@@ -2,7 +2,7 @@
   <div>
     <h2>Your Matches</h2>
     <ul>
-      <li v-for="match in matches" :key="match._id">Matched with: {{ match.ratee }}</li>
+      <li v-for="match in matches" :key="match._id.toString()">Matched with: {{ match.ratee }}</li>
     </ul>
   </div>
 </template>
