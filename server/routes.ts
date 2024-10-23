@@ -1,16 +1,21 @@
 import { ObjectId } from "mongodb";
-
-import { getExpressRouter, Router } from "./framework/router";
-
+import { z } from "zod";
 import { Authing, Chatting, Locating, Matching, SafeMeeting, Sessioning, UserProfiling } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
-
-import { z } from "zod";
+import { ProfileDetails, ProfileDoc } from "./concepts/userProfiling";
+import DocCollection from "./framework/doc";
+import { getExpressRouter, Router } from "./framework/router";
 
 /**
  * Web server routes for the app. Implements synchronizations between concepts.
  */
 class Routes {
+  profiles: DocCollection<ProfileDoc>; // Specify the type for profiles
+
+  constructor() {
+    this.profiles = new DocCollection<ProfileDoc>("profiles"); // Initialize profiles collection
+  }
+
   // Synchronize the concepts from `app.ts`.
 
   @Router.get("/session")
@@ -71,51 +76,39 @@ class Routes {
   // Matching functionality
   @Router.post("/rate")
   @Router.validate(z.object({ targetUserId: z.string(), like: z.boolean() }))
-  async rateUser(sessionId: ObjectId, targetUserId: ObjectId, like: boolean) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    await Matching.rateUser(new ObjectId(session.user), targetUserId, like); // Ensure ObjectId
+  async rateUser(session: SessionDoc, targetUserId: ObjectId, like: boolean) {
+    const user = Sessioning.getUser(session); // Get user directly
+    await Matching.rateUser(new ObjectId(user), targetUserId, like); // Ensure ObjectId
     return { msg: "Rating submitted!" };
   }
 
   // Chatting functionality
   @Router.post("/chatting")
   @Router.validate(z.object({ targetUserId: z.string() }))
-  async startChat(sessionId: ObjectId, targetUserId: ObjectId) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const chat = await Chatting.startSession([new ObjectId(session.user), targetUserId]); // Ensure ObjectId
+  async startChat(session: SessionDoc, targetUserId: ObjectId) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const chat = await Chatting.startSession([new ObjectId(user), targetUserId]); // Ensure ObjectId
     return { msg: "Chat began!", chat };
   }
 
   @Router.get("/chatting")
-  async getChats(sessionId: ObjectId) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const chats = await Chatting.getMessages(new ObjectId(session.user)); // Ensure ObjectId
+  async getChats(session: SessionDoc) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const chats = await Chatting.getMessages(new ObjectId(user)); // Ensure ObjectId
     return { msg: "Chats retrieved.", chats };
   }
 
   @Router.delete("/chatting/:id")
   async endChat(chatId: ObjectId) {
-    await Chatting.endSession(chatId); // Correct method: endSession
+    await Chatting.endSession(chatId);
     return { msg: "Chat ended. Find another match soon?" };
   }
 
   // SafeMeeting functionality
   @Router.get("/meetings")
-  async listMeetings(sessionId: ObjectId) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const meetings = await SafeMeeting.getMeetings(new ObjectId(session.user)); // Ensure ObjectId
+  async listMeetings(session: SessionDoc) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const meetings = await SafeMeeting.getMeetings(new ObjectId(user)); // Ensure ObjectId
     return { msg: "Meetings retrieved.", meetings };
   }
 
@@ -123,47 +116,37 @@ class Routes {
   @Router.validate(
     z.object({
       receiverId: z.string(),
-      date: z.string(), // String to hold the date value
-      time: z.string(), // String to hold the time value
+      date: z.string(),
+      time: z.string(),
       location: z.string(),
-      emergencyContact: z.string().min(10).max(15), // Validation for emergency contact
+      emergencyContact: z.string().min(10).max(15),
     }),
   )
-  async proposeMeeting(sessionId: ObjectId, receiverId: ObjectId, date: string, time: string, location: string, emergencyContact: string) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const meeting = await SafeMeeting.proposeMeeting(new ObjectId(session.user), receiverId, new Date(date), time, location, emergencyContact);
+  async proposeMeeting(session: SessionDoc, receiverId: ObjectId, date: string, time: string, location: string, emergencyContact: string) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const meeting = await SafeMeeting.proposeMeeting(new ObjectId(user), receiverId, new Date(date), time, location, emergencyContact);
     return { msg: "Meeting proposed!", meeting };
   }
 
   @Router.delete("/meetings/:id")
   async cancelMeeting(meetingId: ObjectId) {
-    await SafeMeeting.denyMeeting(meetingId); // Correct method: cancelMeeting
+    await SafeMeeting.denyMeeting(meetingId);
     return { msg: "Meeting canceled." };
   }
 
   // Locating functionality
-  // Locating functionality
   @Router.get("/locating")
-  async showLocation(sessionId: ObjectId) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const locationDetails = await Locating.viewLocation(new ObjectId(session.user));
+  async showLocation(session: SessionDoc) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const locationDetails = await Locating.viewLocation(new ObjectId(user));
     return { msg: "Location found!", location: locationDetails };
   }
 
   @Router.post("/locating")
   @Router.validate(z.object({ share: z.boolean() }))
-  async updateLocationSharing(sessionId: ObjectId, share: boolean) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    await Locating.setLocationSharing(new ObjectId(session.user), share);
+  async updateLocationSharing(session: SessionDoc, share: boolean) {
+    const user = Sessioning.getUser(session); // Get user directly
+    await Locating.setLocationSharing(new ObjectId(user), share);
     return { msg: `Location sharing ${share ? "enabled" : "disabled"}.` };
   }
 
@@ -171,30 +154,24 @@ class Routes {
   @Router.patch("/profile")
   @Router.validate(
     z.object({
-      gender: z.string(),
-      age: z.number(),
-      travelStyle: z.string(),
-      location: z.string(),
-      question_1: z.string(),
-      question_2: z.string(),
+      gender: z.enum(["man", "woman", "nonbinary", "other"]),
+      age: z.number().min(16).max(99),
+      travelStyle: z.enum(["relaxed", "fast-paced"]),
+      location: z.enum(["Barcelona", "Thailand", "London"]),
+      question_1: z.enum(["Agree", "Disagree", "Neutral"]),
+      question_2: z.enum(["Agree", "Disagree", "Neutral"]),
     }),
   )
-  async updateProfile(sessionId: ObjectId, profileDetails: any) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    await UserProfiling.updateProfile(new ObjectId(session.user), profileDetails); // Ensure ObjectId
+  async updateProfile(session: SessionDoc, profileDetails: ProfileDetails) {
+    const user = Sessioning.getUser(session); // Get user directly
+    await UserProfiling.updateProfile(new ObjectId(user), profileDetails);
     return { msg: "Profile updated!" };
   }
 
   @Router.get("/profile")
-  async getProfile(sessionId: ObjectId) {
-    const session = await Sessioning.getSession(sessionId);
-    if (!session.user) {
-      throw new Error("User not authenticated.");
-    }
-    const profile = await UserProfiling.getProfile(new ObjectId(session.user)); // Ensure ObjectId
+  async getProfile(session: SessionDoc) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const profile = await UserProfiling.getProfile(new ObjectId(user)); // Ensure ObjectId
     return { msg: "Profile retrieved.", profile };
   }
 }
