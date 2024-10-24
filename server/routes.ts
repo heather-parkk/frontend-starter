@@ -73,13 +73,37 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
-  // Matching functionality
+  // Utility function to calculate compatibility between two users
+  private calculateCompatibility(userProfile1: ProfileDetails, userProfile2: ProfileDetails): number {
+    let compatibilityScore = 0;
+
+    if (userProfile1.location === userProfile2.location) compatibilityScore++;
+    if (userProfile1.travelStyle === userProfile2.travelStyle) compatibilityScore++;
+    if (userProfile1.question_1 === userProfile2.question_1) compatibilityScore++;
+    if (userProfile1.question_2 === userProfile2.question_2) compatibilityScore++;
+
+    return (compatibilityScore / 4) * 100; // Convert score to percentage
+  }
+
+  // Matching functionality with compatibility calculation
   @Router.post("/rate")
   @Router.validate(z.object({ targetUserId: z.string(), like: z.boolean() }))
   async rateUser(session: SessionDoc, targetUserId: ObjectId, like: boolean) {
-    const user = Sessioning.getUser(session); // Get user directly
-    await Matching.rateUser(new ObjectId(user), targetUserId, like); // Ensure ObjectId
-    return { msg: "Rating submitted!" };
+    const user = Sessioning.getUser(session); // Get the current user
+    const currentUserProfile = await UserProfiling.getProfile(new ObjectId(user)); // Get current user profile
+    const targetUserProfile = await UserProfiling.getProfile(targetUserId); // Get target user profile
+
+    // Calculate compatibility percentage
+    const compatibilityPercentage = this.calculateCompatibility(currentUserProfile, targetUserProfile);
+
+    // Rate the user
+    await Matching.rateUser(new ObjectId(user), targetUserId, like);
+
+    // Return the compatibility percentage along with the message
+    return {
+      msg: "Rating submitted!",
+      compatibility: `${compatibilityPercentage.toFixed(2)}%`, // Return as a percentage with 2 decimal places
+    };
   }
 
   // Chatting functionality
@@ -151,7 +175,6 @@ class Routes {
   }
 
   // UserProfiling functionality
-  // UserProfiling functionality
   @Router.patch("/profile")
   @Router.validate(
     z.object({
@@ -163,12 +186,17 @@ class Routes {
       question_2: z.enum(["Agree", "Disagree", "Neutral"]),
     }),
   )
-  @Router.patch("/profile")
   async updateProfile(session: SessionDoc, profileDetails: ProfileDetails) {
-    console.log("Received profile data:", profileDetails); // Add this line to log the profile data received
     const user = Sessioning.getUser(session); // Get user directly
     await UserProfiling.updateProfile(new ObjectId(user), profileDetails);
     return { msg: "Profile updated!" };
+  }
+
+  @Router.get("/profile")
+  async getProfile(session: SessionDoc) {
+    const user = Sessioning.getUser(session); // Get user directly
+    const profile = await UserProfiling.getProfile(new ObjectId(user)); // Ensure ObjectId
+    return { msg: "Profile retrieved.", profile };
   }
 }
 
