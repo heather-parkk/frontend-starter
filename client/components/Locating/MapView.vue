@@ -1,61 +1,58 @@
 <template>
   <div>
-    <h2>User Location</h2>
+    <h2>{{ locationInfo?.locationName }}</h2>
+    <p>{{ locationInfo?.locationDesc }}</p>
+    <h3>Top Attractions:</h3>
+    <ul>
+      <li v-for="attr in locationInfo?.locationAttr" :key="attr">{{ attr }}</li>
+    </ul>
     <div ref="map" class="map-container"></div>
-    <button @click="toggleLocationSharing">{{ location.shared ? "Disable" : "Enable" }} Location Sharing</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { fetchy } from "@/utils/fetchy";
-import L from "leaflet"; // Import leaflet library for maps
-import "leaflet/dist/leaflet.css"; // Import leaflet CSS
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { onMounted, ref } from "vue";
 
-// Map reference and location object
+// Refs to store the location information and the map object
+const locationInfo = ref(null);
 const map = ref<L.Map | null>(null);
-const location = ref({ latitude: 0, longitude: 0, shared: false });
 
-// Fetch the user's current location
-const fetchLocation = async () => {
+// Fetch location details based on the location name
+// Example of calling the new route with a dynamic city name
+const fetchLocationInfo = async (locationName: string) => {
   try {
-    const userLocation = await fetchy("/api/locating", "GET");
-    location.value = userLocation;
-    initializeMap();
+    const response = await fetchy(`/api/locating/${locationName}`, "GET");
+    locationInfo.value = response.location; // Update the location info
   } catch (err) {
-    console.error("Error fetching location:", err);
+    console.error("Error fetching location details:", err);
   }
 };
 
-// Initialize the map with the user's current location
+// Initialize the map using Leaflet
 const initializeMap = () => {
-  if (!map.value) {
-    map.value = L.map("map").setView([location.value.latitude, location.value.longitude], 13);
+  map.value = L.map("map").setView([51.505, -0.09], 13); // Default coordinates
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map.value);
+};
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map.value);
-
-    // Add marker to the map
-    L.marker([location.value.latitude, location.value.longitude]).addTo(map.value).bindPopup("Your location").openPopup();
+// Update the map with the specific location's latitude and longitude
+const updateMap = () => {
+  if (map.value && locationInfo.value) {
+    const { latitude, longitude } = locationInfo.value;
+    map.value.setView([latitude, longitude], 13); // Set the view to the new location
+    L.marker([latitude, longitude]).addTo(map.value).bindPopup(`${locationInfo.value.locationName}`).openPopup();
   }
 };
 
-// Toggle the location sharing status
-const toggleLocationSharing = async () => {
-  const share = !location.value.shared;
-  try {
-    await fetchy("/api/locating", "POST", { body: { share } });
-    location.value.shared = share;
-  } catch (err) {
-    console.error("Error toggling location sharing:", err);
-  }
-};
-
-// Fetch the user's location and initialize the map when component is mounted
+// On mount, initialize the map and fetch the location info (you can change 'New York City' to dynamic data)
 onMounted(async () => {
-  await fetchLocation(); // Ensure the promise is awaited
+  initializeMap();
+  await fetchLocationInfo("New York City");
 });
 </script>
 

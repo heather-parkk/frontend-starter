@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { Authing, Chatting, Locating, Matching, SafeMeeting, Sessioning, UserProfiling } from "./app";
+import { NotFoundError } from "./concepts/errors";
 import { SessionDoc } from "./concepts/sessioning";
 import { ProfileDetails, ProfileDoc, ProfileUpdate } from "./concepts/userProfiling";
 import DocCollection from "./framework/doc";
@@ -174,24 +175,31 @@ class Routes {
     return { msg: `Location sharing ${share ? "enabled" : "disabled"}.` };
   }
 
+  // Fetch specific city details based on location name
   @Router.get("/locating/:locationName")
-  async getLocationInfo(locationName: string) {
-    const locationInfo = await Locating.getLocationDetails(locationName);
-    return { locationInfo };
+  async getLocationDetails(session: SessionDoc, locationName: string) {
+    try {
+      // Fetch location details using the provided locationName
+      const locationDetails = await Locating.getLocationDetails(locationName);
+      return { msg: "Location details found!", location: locationDetails };
+      // eslint-disable-next-line unused-imports/no-unused-vars, @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new NotFoundError(`Location '${locationName}' is not available.`);
+    }
   }
 
   // UserProfiling functionality
   @Router.patch("/profile")
-  @Router.validate(
-    z.object({
-      gender: z.enum(["man", "woman", "nonbinary", "other"]),
-      age: z.number().min(16).max(99),
-      travelStyle: z.enum(["relaxed", "fast-paced"]),
-      location: z.enum(["Barcelona", "Thailand", "London"]),
-      question_1: z.enum(["Agree", "Disagree", "Neutral"]),
-      question_2: z.enum(["Agree", "Disagree", "Neutral"]),
-    }),
-  )
+  // @Router.validate(
+  //   z.object({
+  //     gender: z.enum(["man", "woman", "nonbinary", "other"]),
+  //     age: z.number().min(16).max(99),
+  //     travelStyle: z.enum(["relaxed", "fast-paced"]),
+  //     location: z.enum(["Barcelona", "Thailand", "London"]),
+  //     question_1: z.enum(["Agree", "Disagree", "Neutral"]),
+  //     question_2: z.enum(["Agree", "Disagree", "Neutral"]),
+  //   }),
+  // )
   async updateProfile(
     session: SessionDoc,
     gender: "man" | "woman" | "nonbinary" | "other",
