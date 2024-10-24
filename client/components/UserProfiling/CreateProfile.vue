@@ -66,15 +66,10 @@ const userStore = useUserStore();
 const createProfile = async () => {
   console.log("Submitting profile:", profile.value); // Log the profile data
   try {
+    // Use profile.value to destructure the properties
+    const { gender, age, travelStyle, location, question_1, question_2 } = profile.value;
     await fetchy("/api/profile", "PATCH", {
-      body: {
-        gender: profile.value.gender,
-        age: profile.value.age,
-        travelStyle: profile.value.travelStyle,
-        location: profile.value.location,
-        question_1: profile.value.question_1,
-        question_2: profile.value.question_2,
-      },
+      body: { gender, age, travelStyle, location, question_1, question_2 },
     });
     userStore.completeProfile(); // Mark profile as complete in user store
   } catch (err) {

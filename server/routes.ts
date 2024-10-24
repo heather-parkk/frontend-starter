@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { Authing, Chatting, Locating, Matching, SafeMeeting, Sessioning, UserProfiling } from "./app";
 import { SessionDoc } from "./concepts/sessioning";
-import { ProfileDetails, ProfileDoc } from "./concepts/userProfiling";
+import { ProfileDetails, ProfileDoc, ProfileUpdate } from "./concepts/userProfiling";
 import DocCollection from "./framework/doc";
 import { getExpressRouter, Router } from "./framework/router";
 
@@ -63,7 +63,7 @@ class Routes {
   @Router.post("/login")
   async logIn(session: SessionDoc, username: string, password: string) {
     const u = await Authing.authenticate(username, password);
-    Sessioning.start(session, u._id);
+    Sessioning.start(session, u._id); // Store the user ID in the session
     return { msg: "Logged in!" };
   }
 
@@ -186,17 +186,26 @@ class Routes {
       question_2: z.enum(["Agree", "Disagree", "Neutral"]),
     }),
   )
-  async updateProfile(session: SessionDoc, profileDetails: ProfileDetails) {
-    const user = Sessioning.getUser(session); // Get user directly
+  async updateProfile(
+    session: SessionDoc,
+    gender: "man" | "woman" | "nonbinary" | "other",
+    age: number,
+    travelStyle: "relaxed" | "fast-paced",
+    location: "Barcelona" | "Thailand" | "London",
+    question_1: "Agree" | "Disagree" | "Neutral",
+    question_2: "Agree" | "Disagree" | "Neutral",
+  ) {
+    const user = Sessioning.getUser(session); // Get the current user
+    const profileDetails: ProfileUpdate = {
+      gender,
+      age,
+      travelStyle,
+      location,
+      question_1,
+      question_2,
+    };
     await UserProfiling.updateProfile(new ObjectId(user), profileDetails);
     return { msg: "Profile updated!" };
-  }
-
-  @Router.get("/profile")
-  async getProfile(session: SessionDoc) {
-    const user = Sessioning.getUser(session); // Get user directly
-    const profile = await UserProfiling.getProfile(new ObjectId(user)); // Ensure ObjectId
-    return { msg: "Profile retrieved.", profile };
   }
 }
 

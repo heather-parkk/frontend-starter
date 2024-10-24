@@ -10,9 +10,12 @@ export interface ProfileDoc extends BaseDoc {
   location: "Barcelona" | "Thailand" | "London";
   question_1: "Agree" | "Disagree" | "Neutral";
   question_2: "Agree" | "Disagree" | "Neutral";
+  dateCreated: Date;
+  dateUpdated: Date;
 }
 
 export type ProfileDetails = Omit<ProfileDoc, "user">;
+export type ProfileUpdate = Omit<ProfileDetails, "dateCreated" | "dateUpdated" | "_id">;
 
 /**
  * concept: UserProfiling
@@ -25,20 +28,30 @@ export default class UserProfilingConcept {
     void this.profiles.collection.createIndex({ user: 1 });
   }
 
-  async updateProfile(userId: ObjectId, profileDetails: ProfileDetails) {
+  // Create or update the user profile
+  async updateProfile(userId: ObjectId, profileDetails: ProfileUpdate) {
     await this.assertValidProfileDetails(profileDetails);
 
     const existingProfile = await this.profiles.readOne({ user: userId });
+    const currentDate = new Date();
 
     if (existingProfile) {
-      await this.profiles.partialUpdateOne({ user: userId }, profileDetails);
+      // If profile exists, update it and set dateUpdated
+      await this.profiles.partialUpdateOne({ user: userId }, { ...profileDetails, dateUpdated: currentDate });
       return { msg: "Profile updated successfully!" };
     } else {
-      await this.profiles.createOne({ user: userId, ...profileDetails });
+      // If profile does not exist, create a new profile
+      await this.profiles.createOne({
+        user: userId,
+        ...profileDetails,
+        dateCreated: currentDate,
+        dateUpdated: currentDate,
+      });
       return { msg: "Profile created successfully!" };
     }
   }
 
+  // Get a user profile by userId
   async getProfile(userId: ObjectId) {
     const profile = await this.profiles.readOne({ user: userId });
     if (!profile) {
@@ -47,6 +60,7 @@ export default class UserProfilingConcept {
     return profile;
   }
 
+  // Delete a user profile
   async deleteProfile(userId: ObjectId) {
     const deleted = await this.profiles.deleteOne({ user: userId });
     if (!deleted) {
@@ -55,7 +69,8 @@ export default class UserProfilingConcept {
     return { msg: "Profile deleted successfully!" };
   }
 
-  private async assertValidProfileDetails(profileDetails: ProfileDetails) {
+  // Internal helper function to validate the profile details
+  private async assertValidProfileDetails(profileDetails: ProfileUpdate) {
     const { gender, age, travelStyle, location, question_1, question_2 } = profileDetails;
 
     if (!gender || !age || !travelStyle || !location || !question_1 || !question_2) {

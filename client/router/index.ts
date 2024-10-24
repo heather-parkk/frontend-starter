@@ -59,7 +59,7 @@ const router = createRouter({
 /**
  * Navigation guards to prevent user from accessing wrong pages.
  */
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
   const { isLoggedIn } = storeToRefs(useUserStore());
 
   if (to.meta.requiresAuth && !isLoggedIn.value) {
