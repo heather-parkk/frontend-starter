@@ -38,9 +38,9 @@ export async function fetchy(
   const fetchOptions: RequestInit = {
     method,
     headers: {
-      "Content-Type": "application/json", // Ensure this is set
-      credentials: "same-origin",
+      "Content-Type": "application/json",
     },
+    credentials: "same-origin", // Ensure cookies are sent with requests
   };
 
   // Add body to the request if it's present

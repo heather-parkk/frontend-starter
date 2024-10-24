@@ -195,6 +195,7 @@ class Routes {
     question_1: "Agree" | "Disagree" | "Neutral",
     question_2: "Agree" | "Disagree" | "Neutral",
   ) {
+    console.log("Session Data:", session); // Log the session data for debugging
     const user = Sessioning.getUser(session); // Get the current user
     const profileDetails: ProfileUpdate = {
       gender,

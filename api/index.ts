@@ -31,6 +31,10 @@ app.use(
       mongoUrl: process.env.MONGO_SRV,
       dbName: "mongo-sessions",
     }),
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      maxAge: 1000 * 60 * 60 * 24, // 1 day expiration
+    },
   }),
 );
 
