@@ -5,14 +5,31 @@
       <MessageList :messages="messages" />
     </div>
     <MessageInput @sendMessage="sendMessage" />
+
+    <!-- SafeMeeting button -->
+    <button @click="navigateToSafeMeeting">Propose Safe Meeting</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { fetchy } from "../../utils/fetchy";
 import MessageInput from "../Chatting/MessageInput.vue";
 import MessageList from "../Chatting/MessageList.vue";
+
+const router = useRouter();
+
+const navigateToSafeMeeting = () => {
+  router
+    .push({ name: "SafeMeeting" })
+    .then(() => {
+      console.log("Navigation successful!");
+    })
+    .catch((error) => {
+      console.error("Navigation error:", error);
+    });
+};
 
 // Define props with appropriate types
 const props = defineProps<{
@@ -54,5 +71,18 @@ onMounted(fetchMessages);
 .messages {
   flex-grow: 1;
   overflow-y: auto;
+}
+
+button {
+  margin-top: 1em;
+  padding: 0.5em;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
 }
 </style>

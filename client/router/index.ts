@@ -36,10 +36,15 @@ const router = createRouter({
     {
       path: "/chats",
       name: "Chats",
-      component: () => import("@/components/Chatting/ChatRoom.vue"),
+      component: () => import("@/components/Chatting/ChatRoom.vue"), // Assuming you have a ChatRoom.vue component
       meta: {
-        requiresAuth: true,
+        requiresAuth: true, // If you want to protect the route
       },
+    },
+    {
+      path: "/safemeeting",
+      name: "SafeMeeting",
+      component: () => import("../components/Meeting/SafeMeeting.vue"), // Adjust path as necessary
     },
     {
       path: "/:catchAll(.*)",
