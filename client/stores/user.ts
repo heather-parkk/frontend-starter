@@ -1,17 +1,18 @@
+import { fetchy } from "@/utils/fetchy";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-
-import { fetchy } from "@/utils/fetchy";
 
 export const useUserStore = defineStore(
   "user",
   () => {
     const currentUsername = ref("");
+    const isProfileComplete = ref(false); // New state to track profile completeness
 
     const isLoggedIn = computed(() => currentUsername.value !== "");
 
     const resetStore = () => {
       currentUsername.value = "";
+      isProfileComplete.value = false; // Reset profile completeness on logout
     };
 
     const createUser = async (username: string, password: string) => {
@@ -28,16 +29,22 @@ export const useUserStore = defineStore(
 
     const updateSession = async () => {
       try {
-        const { username } = await fetchy("/api/session", "GET", { alert: false });
+        const { username, profileComplete } = await fetchy("/api/session", "GET", { alert: false });
         currentUsername.value = username;
+        isProfileComplete.value = profileComplete; // Set profile completeness based on session data
       } catch {
         currentUsername.value = "";
+        isProfileComplete.value = false; // Reset on error
       }
     };
 
     const logoutUser = async () => {
       await fetchy("/api/logout", "POST");
       resetStore();
+    };
+
+    const completeProfile = () => {
+      isProfileComplete.value = true; // Mark profile as complete
     };
 
     const updateUserUsername = async (username: string) => {
@@ -56,10 +63,12 @@ export const useUserStore = defineStore(
     return {
       currentUsername,
       isLoggedIn,
+      isProfileComplete, // Expose the profile completeness state
       createUser,
       loginUser,
       updateSession,
       logoutUser,
+      completeProfile, // Expose the completeProfile method
       updateUserUsername,
       updateUserPassword,
       deleteUser,

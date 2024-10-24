@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import PostListComponent from "@/components/Match/MatchingView.vue";
 import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
+import RateUser from "../components/Match/RateUser.vue"; // Import the RateUser component
+import CreateProfile from "../components/UserProfiling/CreateProfile.vue"; // Import CreateProfile
 
-const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
+const userStore = useUserStore();
+const { currentUsername, isLoggedIn, isProfileComplete } = storeToRefs(userStore);
 </script>
 
 <template>
@@ -13,7 +15,10 @@ const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
       <h1 v-if="isLoggedIn">Welcome {{ currentUsername }}!</h1>
       <h1 v-else>Please login!</h1>
     </section>
-    <PostListComponent />
+    <CreateProfile v-if="isLoggedIn && !isProfileComplete" />
+    <!-- Show CreateProfile if profile is not complete -->
+    <RateUser v-if="isLoggedIn && isProfileComplete" />
+    <!-- Show RateUser only if profile is complete -->
   </main>
 </template>
 

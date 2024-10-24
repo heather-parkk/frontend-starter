@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import CreateProfileForm from "@/components/UserProfiling/CreateProfile.vue";
 import ViewProfile from "@/components/UserProfiling/ViewProfile.vue";
-import { ref } from "vue";
+import { useUserStore } from "@/stores/user"; // Import the user store
+import { computed, onMounted, ref } from "vue";
 
-// Use a ref to hold the profile data if needed for reactive updates
+const userStore = useUserStore();
 const profileData = ref(null);
 
 const refreshProfiles = () => {
-  // Logic to refresh profiles or re-fetch data if necessary
-  // This could involve an API call to get the latest user profile
-  // e.g., fetchProfileData();
+  void fetchProfileData(); // Refresh profile data when needed
 };
 
-// You can add a function here to fetch and set the profile data if needed
 const fetchProfileData = async () => {
   try {
-    // Example API call to fetch the user's profile
     const response = await fetch("/api/profile", { method: "GET" });
     if (response.ok) {
-      profileData.value = await response.json(); // Update the profile data
+      profileData.value = await response.json();
     } else {
       console.error("Failed to fetch profile data");
     }
@@ -27,16 +24,16 @@ const fetchProfileData = async () => {
   }
 };
 
-// Call this function to fetch profile data on component mount
-void fetchProfileData();
+const isProfileComplete = computed(() => userStore.isProfileComplete);
+
+onMounted(fetchProfileData);
 </script>
 
 <template>
   <div>
     <h1>User Profile Management</h1>
-    <CreateProfileForm @refreshProfiles="refreshProfiles" />
-    <ViewProfile :profile="profileData" />
-    <!-- Pass profile data to ViewProfile -->
+    <CreateProfileForm v-if="!isProfileComplete" @refreshProfiles="refreshProfiles" />
+    <ViewProfile v-if="profileData" :profile="profileData" />
   </div>
 </template>
 
