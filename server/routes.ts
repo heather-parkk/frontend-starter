@@ -174,6 +174,12 @@ class Routes {
     return { msg: `Location sharing ${share ? "enabled" : "disabled"}.` };
   }
 
+  @Router.get("/locating/:locationName")
+  async getLocationInfo(locationName: string) {
+    const locationInfo = await Locating.getLocationDetails(locationName);
+    return { locationInfo };
+  }
+
   // UserProfiling functionality
   @Router.patch("/profile")
   @Router.validate(
