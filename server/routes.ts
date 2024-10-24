@@ -151,6 +151,7 @@ class Routes {
   }
 
   // UserProfiling functionality
+  // UserProfiling functionality
   @Router.patch("/profile")
   @Router.validate(
     z.object({
@@ -162,17 +163,12 @@ class Routes {
       question_2: z.enum(["Agree", "Disagree", "Neutral"]),
     }),
   )
+  @Router.patch("/profile")
   async updateProfile(session: SessionDoc, profileDetails: ProfileDetails) {
+    console.log("Received profile data:", profileDetails); // Add this line to log the profile data received
     const user = Sessioning.getUser(session); // Get user directly
     await UserProfiling.updateProfile(new ObjectId(user), profileDetails);
     return { msg: "Profile updated!" };
-  }
-
-  @Router.get("/profile")
-  async getProfile(session: SessionDoc) {
-    const user = Sessioning.getUser(session); // Get user directly
-    const profile = await UserProfiling.getProfile(new ObjectId(user)); // Ensure ObjectId
-    return { msg: "Profile retrieved.", profile };
   }
 }
 

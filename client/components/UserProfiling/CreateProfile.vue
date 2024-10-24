@@ -48,25 +48,37 @@
 </template>
 
 <script setup lang="ts">
+import { useUserStore } from "@/stores/user"; // Import the user store
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
 const profile = ref({
   gender: "",
-  age: 16,
+  age: "",
   travelStyle: "",
   location: "",
   question_1: "",
   question_2: "",
 });
 
+const userStore = useUserStore();
+
 const createProfile = async () => {
+  console.log("Submitting profile:", profile.value); // Log the profile data
   try {
     await fetchy("/api/profile", "PATCH", {
-      body: profile.value,
+      body: {
+        gender: profile.value.gender,
+        age: profile.value.age,
+        travelStyle: profile.value.travelStyle,
+        location: profile.value.location,
+        question_1: profile.value.question_1,
+        question_2: profile.value.question_2,
+      },
     });
+    userStore.completeProfile(); // Mark profile as complete in user store
   } catch (err) {
-    console.error(err);
+    console.error("Error creating profile:", err);
   }
 };
 </script>

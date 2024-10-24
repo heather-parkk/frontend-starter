@@ -14,6 +14,7 @@ export type BodyT = string | number | boolean | null | BodyT[] | { [key: string]
  * @returns The response body
  * @throws An error if the response is not ok
  */
+
 export async function fetchy(
   url: string,
   method: HttpMethod,
@@ -26,8 +27,9 @@ export async function fetchy(
   options = options ?? {};
   options.alert = options.alert ?? true;
 
-  const queryString = new URLSearchParams(options.query).toString();
-  const fullUrl = `${url}?${queryString}`;
+  // Construct query string if query params exist
+  const queryString = options.query ? new URLSearchParams(options.query).toString() : "";
+  const fullUrl = queryString ? `${url}?${queryString}` : url; // Avoid adding '?' if no query
 
   if ((method === "GET" || method === "DELETE") && options.body) {
     throw new Error(`Cannot have a body with a ${method} request`);
@@ -36,11 +38,12 @@ export async function fetchy(
   const fetchOptions: RequestInit = {
     method,
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json", // Ensure this is set
       credentials: "same-origin",
     },
   };
 
+  // Add body to the request if it's present
   if (options.body) {
     fetchOptions.body = JSON.stringify(options.body);
   }
