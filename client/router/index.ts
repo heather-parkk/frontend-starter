@@ -26,11 +26,13 @@ const router = createRouter({
       name: "Login",
       component: LoginView,
       meta: { requiresAuth: false },
-      beforeEnter: (to, from) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      beforeEnter: (to, _from) => {
         const { isLoggedIn } = storeToRefs(useUserStore());
-        if (isLoggedIn.value) {
+        if (isLoggedIn.value && to.name === "Login") {
           return { name: "Settings" };
         }
+        // You could add more conditions based on `to` and `from`
       },
     },
     {
