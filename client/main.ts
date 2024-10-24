@@ -1,6 +1,7 @@
 import "@/assets/main.css";
 import "purecss";
 
+import "leaflet/dist/leaflet.css";
 import { createPinia } from "pinia";
 import piniaPluginPersistedState from "pinia-plugin-persistedstate";
 import { createApp } from "vue";
