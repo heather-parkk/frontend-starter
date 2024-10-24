@@ -34,6 +34,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/chats",
+      name: "Chats",
+      component: () => import("@/components/Chatting/ChatRoom.vue"),
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: "/:catchAll(.*)",
       name: "not-found",
       component: NotFoundView,
