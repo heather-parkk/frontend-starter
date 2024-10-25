@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div>
     <h2>{{ locationInfo?.locationName }}</h2>
     <p>{{ locationInfo?.locationDesc }}</p>
@@ -61,4 +61,4 @@ onMounted(async () => {
   height: 400px;
   width: 100%;
 }
-</style>
+</style> -->
