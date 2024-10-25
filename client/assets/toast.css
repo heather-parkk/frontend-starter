@@ -1,19 +1,25 @@
 .toast {
   position: fixed;
-  top: 1em;
+  bottom: 2em; /* Adjust the positioning to appear near the bottom of the page */
   left: 50%;
+  transform: translateX(-50%);
+  background-color: #4caf50; /* Use a green color to indicate success */
+  color: white;
+  padding: 1em 2em; /* Add padding for a better layout */
+  border-radius: 8px; /* Rounded corners for a softer look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  max-width: 90%; /* Prevent the notification from taking too much space */
+  text-align: center; /* Center the text */
+  z-index: 1000; /* Make sure the toast appears above other elements */
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Smooth transitions */
+}
+
+.toast.show {
+  opacity: 1;
   transform: translate(-50%, 0);
-  padding: 0.5em 1em;
-  border-radius: 6px;
-  max-width: 60em;
-  margin: 0 auto;
-
-  color: #fff;
 }
 
-.error {
-  background-color: #fa5252;
-}
-.success {
-  background-color: #40c057;
+.toast.hide {
+  opacity: 0;
+  transform: translate(-50%, 50px);
 }

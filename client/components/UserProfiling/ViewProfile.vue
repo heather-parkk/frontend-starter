@@ -16,6 +16,7 @@ const profile = ref(null);
 const fetchProfile = async () => {
   try {
     const response = await fetchy("/api/profile", "GET");
+    console.log("Fetched Profile:", response); // Debugging to verify profile data
     profile.value = response;
   } catch (err) {
     console.error("Failed to fetch profile:", err);
