@@ -43,14 +43,14 @@ const router = createRouter({
         requiresAuth: true, // If you want to protect the route
       },
     },
-    {
-      path: "/locating",
-      name: "Locating",
-      component: () => import("../components/Locating/MapView.vue"), // Assuming you have a ChatRoom.vue component
-      meta: {
-        requiresAuth: true, // If you want to protect the route
-      },
-    },
+    // {
+    //   path: "/locating",
+    //   name: "Locating",
+    //   component: () => import("../components/Locating/MapView.vue"), // Assuming you have a ChatRoom.vue component
+    //   meta: {
+    //     requiresAuth: true, // If you want to protect the route
+    //   },
+    // },
     {
       path: "/safemeeting",
       name: "SafeMeeting",

@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div v-if="locationInfo">
     <h2>{{ locationInfo.locationName }}</h2>
     <p>{{ locationInfo.locationDesc }}</p>
@@ -45,4 +45,4 @@ onMounted(async () => {
 h2 {
   font-size: 1.5em;
 }
-</style>
+</style> -->
