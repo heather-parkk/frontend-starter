@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
-import { BadValuesError, NotFoundError } from "./errors";
+import { BadValuesError } from "./errors";
 
 export interface ProfileDoc extends BaseDoc {
   user: ObjectId;
@@ -25,22 +25,64 @@ export default class UserProfilingConcept {
 
   constructor(collectionName: string) {
     this.profiles = new DocCollection<ProfileDoc>(collectionName);
+    // Create the index on the collection for user
     void this.profiles.collection.createIndex({ user: 1 });
+  }
+
+  // Fetch a user's profile by their user ID
+  async getProfile(userId: ObjectId): Promise<ProfileDoc | null> {
+    const profile = await this.profiles.readOne({ user: userId });
+    if (!profile) {
+      console.log(`Profile not found for user ID: ${userId}`);
+    } else {
+      console.log(`Profile found for user ID: ${userId}`, profile);
+    }
+    return profile;
+  }
+
+  // Create a new profile with the given user ID and profile data
+  async createProfile(userId: ObjectId, profileData: ProfileUpdate): Promise<ProfileDoc> {
+    const newProfile = {
+      user: userId,
+      ...profileData,
+      dateCreated: new Date(),
+      dateUpdated: new Date(),
+    };
+
+    const result = await this.profiles.readOne({ user: userId });
+
+    // Check if the result is null before trying to access _id
+    if (!result) {
+      throw new Error("Profile not found for the given user.");
+    }
+
+    const profileId = result._id; // Now it is safe to access _id since we know result is not null
+
+    // Return the profile with the _id added from the result
+    return {
+      ...newProfile,
+      _id: profileId, // Use the inserted _id from MongoDB
+    };
   }
 
   // Create or update the user profile
   async updateProfile(userId: ObjectId, profileDetails: ProfileUpdate) {
+    // Convert age to a number if it's a string
+    if (typeof profileDetails.age === "string") {
+      profileDetails.age = parseInt(profileDetails.age, 10);
+    }
+
     await this.assertValidProfileDetails(profileDetails);
 
     const existingProfile = await this.profiles.readOne({ user: userId });
     const currentDate = new Date();
 
     if (existingProfile) {
-      // If profile exists, update it and set dateUpdated
+      // If the profile exists, update it and set dateUpdated
       await this.profiles.partialUpdateOne({ user: userId }, { ...profileDetails, dateUpdated: currentDate });
       return { msg: "Profile updated successfully!" };
     } else {
-      // If profile does not exist, create a new profile
+      // If the profile doesn't exist, create a new one
       await this.profiles.createOne({
         user: userId,
         ...profileDetails,
@@ -49,24 +91,6 @@ export default class UserProfilingConcept {
       });
       return { msg: "Profile created successfully!" };
     }
-  }
-
-  // Get a user profile by userId
-  async getProfile(userId: ObjectId) {
-    const profile = await this.profiles.readOne({ user: userId });
-    if (!profile) {
-      throw new NotFoundError("Profile not found!");
-    }
-    return profile;
-  }
-
-  // Delete a user profile
-  async deleteProfile(userId: ObjectId) {
-    const deleted = await this.profiles.deleteOne({ user: userId });
-    if (!deleted) {
-      throw new NotFoundError("Profile not found to delete!");
-    }
-    return { msg: "Profile deleted successfully!" };
   }
 
   // Internal helper function to validate the profile details

@@ -15,6 +15,21 @@ class Routes {
 
   constructor() {
     this.profiles = new DocCollection<ProfileDoc>("profiles"); // Initialize profiles collection
+
+    // Bind `this` to ensure compatibility method works in async callbacks
+    this.calculateCompatibility = this.calculateCompatibility.bind(this);
+  }
+
+  // Utility function to calculate compatibility between two users
+  private calculateCompatibility(userProfile1: ProfileDetails, userProfile2: ProfileDetails): number {
+    let compatibilityScore = 0;
+
+    if (userProfile1.location == userProfile2.location) compatibilityScore++;
+    if (userProfile1.travelStyle == userProfile2.travelStyle) compatibilityScore++;
+    if (userProfile1.question_1 == userProfile2.question_1) compatibilityScore++;
+    if (userProfile1.question_2 == userProfile2.question_2) compatibilityScore++;
+
+    return (compatibilityScore / 4) * 100; // Convert score to percentage
   }
 
   // Synchronize the concepts from `app.ts`.
@@ -26,8 +41,56 @@ class Routes {
   }
 
   @Router.get("/users")
-  async getUsers() {
-    return await Authing.getUsers();
+  async getUsers(session: SessionDoc) {
+    try {
+      const currentUserId = Sessioning.getUser(session); // Get the current user ID
+      const currentUserProfile = await UserProfiling.getProfile(new ObjectId(currentUserId)); // Fetch current user's profile
+
+      if (!currentUserProfile) {
+        throw new NotFoundError("Current user profile not found!"); // Handle missing profile
+      }
+
+      // Log current user profile to verify it's correct
+      console.log("Current User Profile:", currentUserProfile);
+
+      // Fetch all users except the logged-in user
+      const users = await Authing.getUsers();
+      const otherUsers = users.filter((user) => !user._id.equals(currentUserId)); // Exclude current user
+
+      // Fetch profiles for all other users and calculate compatibility
+      const usersWithProfiles = await Promise.all(
+        otherUsers.map(async (user) => {
+          const profile = await UserProfiling.getProfile(user._id);
+
+          // Log profiles to ensure they're being fetched
+          console.log(`Profile for ${user.username}:`, profile);
+
+          // Ensure profiles exist before attempting compatibility calculation
+          let compatibility = "unknown"; // Default to unknown
+          if (profile && currentUserProfile) {
+            try {
+              // Ensure both profiles are not null or undefined
+              const compatibilityPercentage = this.calculateCompatibility(currentUserProfile, profile);
+              compatibility = `${compatibilityPercentage.toFixed(2)}%`;
+            } catch (error) {
+              console.error(`Error calculating compatibility for user ${user.username}:`, error);
+            }
+          }
+
+          return {
+            _id: user._id,
+            username: user.username,
+            profile: profile || {}, // Include profile details
+            compatibility, // Include compatibility
+          };
+        }),
+      );
+
+      return usersWithProfiles.filter((user) => Object.keys(user.profile).length > 0); // Return users with valid profiles
+    } catch (error) {
+      console.error("Error fetching users or profiles:", error);
+      throw new Error("Failed to fetch users and calculate compatibility");
+    }
   }
 
   @Router.get("/users/:username")
@@ -39,7 +102,30 @@ class Routes {
   @Router.post("/users")
   async createUser(session: SessionDoc, username: string, password: string) {
     Sessioning.isLoggedOut(session);
-    return await Authing.create(username, password);
+
+    // Create a new user
+    const userCreationResult = await Authing.create(username, password);
+
+    // Ensure `user` is not null and access `_id` correctly
+    if (!userCreationResult || !userCreationResult.user || !userCreationResult.user._id) {
+      throw new Error("User creation failed or user ID not found.");
+    }
+
+    const userId = userCreationResult.user._id;
+
+    // Create a default profile for the new user
+    const defaultProfileData: ProfileUpdate = {
+      gender: "other", // Set default values
+      age: 18,
+      travelStyle: "relaxed",
+      location: "London",
+      question_1: "Neutral",
+      question_2: "Neutral",
+    };
+
+    await UserProfiling.createProfile(userId, defaultProfileData);
+
+    return userCreationResult;
   }
 
   @Router.patch("/users/username")
@@ -74,37 +160,76 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
-  // Utility function to calculate compatibility between two users
-  private calculateCompatibility(userProfile1: ProfileDetails, userProfile2: ProfileDetails): number {
-    let compatibilityScore = 0;
+  @Router.get("/profile")
+  async getProfile(session: SessionDoc) {
+    const userId = Sessioning.getUser(session); // Retrieve the current user's ID from the session
+    const profile = await UserProfiling.getProfile(new ObjectId(userId));
 
-    if (userProfile1.location === userProfile2.location) compatibilityScore++;
-    if (userProfile1.travelStyle === userProfile2.travelStyle) compatibilityScore++;
-    if (userProfile1.question_1 === userProfile2.question_1) compatibilityScore++;
-    if (userProfile1.question_2 === userProfile2.question_2) compatibilityScore++;
+    if (!profile) {
+      throw new NotFoundError("Profile not found!"); // Return a 404 error if the profile is missing
+    }
 
-    return (compatibilityScore / 4) * 100; // Convert score to percentage
+    return profile; // Return the profile details
   }
 
-  // Matching functionality with compatibility calculation
   @Router.post("/rate")
-  @Router.validate(z.object({ targetUserId: z.string(), like: z.boolean() }))
   async rateUser(session: SessionDoc, targetUserId: ObjectId, like: boolean) {
-    const user = Sessioning.getUser(session); // Get the current user
-    const currentUserProfile = await UserProfiling.getProfile(new ObjectId(user)); // Get current user profile
-    const targetUserProfile = await UserProfiling.getProfile(targetUserId); // Get target user profile
+    const user = Sessioning.getUser(session);
 
-    // Calculate compatibility percentage
-    const compatibilityPercentage = this.calculateCompatibility(currentUserProfile, targetUserProfile);
+    // Ensure `targetUserId` is a valid `ObjectId`
+    if (!ObjectId.isValid(targetUserId)) {
+      throw new Error("Invalid target user ID.");
+    }
 
-    // Rate the user
+    // Fetch the profiles
+    const currentUserProfile = await UserProfiling.getProfile(new ObjectId(user));
+    console.log("Fetched Current User Profile:", currentUserProfile);
+    const targetUserProfile = await UserProfiling.getProfile(targetUserId);
+    console.log("Fetched Target User Profile:", targetUserProfile);
+
+    // Check if profiles exist
+    if (!currentUserProfile) {
+      throw new NotFoundError("Current user profile not found.");
+    }
+    if (!targetUserProfile) {
+      throw new NotFoundError("Target user profile not found.");
+    }
+
+    // Perform the rating
     await Matching.rateUser(new ObjectId(user), targetUserId, like);
 
-    // Return the compatibility percentage along with the message
     return {
       msg: "Rating submitted!",
-      compatibility: `${compatibilityPercentage.toFixed(2)}%`, // Return as a percentage with 2 decimal places
     };
+  }
+
+  @Router.get("/rateable-users")
+  async getRateableUsers(session: SessionDoc) {
+    const currentUserId = Sessioning.getUser(session); // Get the current user ID
+
+    // Fetch all users except the current one
+    const users = await Authing.getUsers();
+    const rateableUsers = users.filter((user) => !user._id.equals(currentUserId)); // Exclude current user
+
+    const userProfiles = await Promise.all(
+      rateableUsers.map(async (user) => {
+        const profile = await UserProfiling.getProfile(user._id);
+        return profile
+          ? {
+              _id: user._id,
+              username: user.username,
+              age: profile.age,
+              gender: profile.gender,
+              travelStyle: profile.travelStyle,
+              location: profile.location,
+              question_1: profile.question_1,
+              question_2: profile.question_2,
+            }
+          : null;
+      }),
+    );
+
+    return userProfiles.filter((user) => user !== null); // Return only valid profiles
   }
 
   // Chatting functionality
