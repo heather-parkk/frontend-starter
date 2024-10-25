@@ -27,13 +27,19 @@ export default class MatchingConcept {
 
     // Check if mutual positive rating exists
     if (rating) {
-      const reciprocalRating = await this.ratings.readOne({ rater: ratee, ratee: rater, rating: true });
+      const reciprocalRating = await this.hasUserLiked(ratee, rater);
       if (reciprocalRating) {
         // If both users liked each other, match them
         await this.addFriend(rater, ratee);
       }
     }
     return { msg: "Rating successfully submitted." };
+  }
+
+  // Check if a user has liked another user
+  async hasUserLiked(rater: ObjectId, ratee: ObjectId): Promise<boolean> {
+    const rating = await this.ratings.readOne({ rater, ratee, rating: true });
+    return !!rating; // Return true if a positive rating exists
   }
 
   // Fetch ratings for a user

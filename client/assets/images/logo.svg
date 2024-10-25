@@ -1,16 +1,33 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	 viewBox="0 0 512 512" xml:space="preserve">
-<g>
-	
-		<rect x="136.268" y="330.038" transform="matrix(-0.8852 -0.4651 0.4651 -0.8852 325.138 757.3587)" style="fill:#609399;" width="239.456" height="17.066"/>
-	
-		<rect x="247.491" y="53.674" transform="matrix(-0.4652 -0.8852 0.8852 -0.4652 221.626 480.7104)" style="fill:#609399;" width="17.067" height="239.467"/>
-</g>
-<g>
-	<circle style="fill:#6FC5D6;" cx="98.805" cy="256" r="90.817"/>
-	<circle style="fill:#6FC5D6;" cx="413.195" cy="421.183" r="90.817"/>
-	<circle style="fill:#6FC5D6;" cx="413.195" cy="90.817" r="90.817"/>
-</g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 512 512" xml:space="preserve">
+  <!-- Outer circle representing the Earth -->
+  <circle cx="256" cy="256" r="250" fill="#6FC5D6" /> <!-- Light blue for the ocean -->
+
+  <!-- Continents represented with abstract, larger shapes -->
+  <!-- North America -->
+  <path d="M120 130 C80 90, 200 70, 240 120 Q220 180, 150 170 T120 130 Z" fill="#85BB65" />
+
+  <!-- South America -->
+  <path d="M180 290 C150 250, 230 230, 270 280 Q250 340, 200 320 Z" fill="#85BB65" />
+
+  <!-- Central America -->
+  <path d="M180 230 C190 250, 210 250, 230 260 Q210 270, 200 250 Z" fill="#85BB65" />
+
+  <!-- Caribbean Islands (stylized) -->
+  <circle cx="220" cy="220" r="8" fill="#85BB65" />
+  <circle cx="240" cy="240" r="6" fill="#85BB65" />
+
+  <!-- Enlarged Western Hemisphere -->
+  <!-- Adding abstract, simplified shapes to represent parts of the Western side in a cartoon style -->
+  
+  <!-- Greenland -->
+  <path d="M300 50 C280 30, 360 40, 380 80 Q350 120, 310 100 Z" fill="#85BB65" />
+
+  <!-- Western tip of Africa (for context) -->
+  <path d="M350 320 C360 350, 370 370, 390 360 Q380 330, 360 310 Z" fill="#85BB65" />
+
+  <!-- Small islands (additional fun features) -->
+  <circle cx="320" cy="380" r="10" fill="#85BB65" />
+  <circle cx="150" cy="350" r="8" fill="#85BB65" />
 </svg>

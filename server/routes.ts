@@ -102,30 +102,7 @@ class Routes {
   @Router.post("/users")
   async createUser(session: SessionDoc, username: string, password: string) {
     Sessioning.isLoggedOut(session);
-
-    // Create a new user
-    const userCreationResult = await Authing.create(username, password);
-
-    // Ensure `user` is not null and access `_id` correctly
-    if (!userCreationResult || !userCreationResult.user || !userCreationResult.user._id) {
-      throw new Error("User creation failed or user ID not found.");
-    }
-
-    const userId = userCreationResult.user._id;
-
-    // Create a default profile for the new user
-    const defaultProfileData: ProfileUpdate = {
-      gender: "other", // Set default values
-      age: 18,
-      travelStyle: "relaxed",
-      location: "London",
-      question_1: "Neutral",
-      question_2: "Neutral",
-    };
-
-    await UserProfiling.createProfile(userId, defaultProfileData);
-
-    return userCreationResult;
+    return await Authing.create(username, password);
   }
 
   @Router.patch("/users/username")
@@ -172,19 +149,20 @@ class Routes {
     return profile; // Return the profile details
   }
 
+  // Matching functionality with compatibility calculation
+  // Matching functionality with compatibility calculation
   @Router.post("/rate")
-  async rateUser(session: SessionDoc, targetUserId: ObjectId, like: boolean) {
-    const user = Sessioning.getUser(session);
+  async rateUser(session: SessionDoc, targetUserId: string, like: boolean) {
+    const userId = Sessioning.getUser(session); // Assume this is already an ObjectId
 
-    // Ensure `targetUserId` is a valid `ObjectId`
-    if (!ObjectId.isValid(targetUserId)) {
-      throw new Error("Invalid target user ID.");
-    }
+    // Convert targetUserId from string to ObjectId
+    const targetUserObjectId = new ObjectId(targetUserId);
 
     // Fetch the profiles
-    const currentUserProfile = await UserProfiling.getProfile(new ObjectId(user));
+    const currentUserProfile = await UserProfiling.getProfile(userId);
     console.log("Fetched Current User Profile:", currentUserProfile);
-    const targetUserProfile = await UserProfiling.getProfile(targetUserId);
+
+    const targetUserProfile = await UserProfiling.getProfile(targetUserObjectId);
     console.log("Fetched Target User Profile:", targetUserProfile);
 
     // Check if profiles exist
@@ -196,7 +174,23 @@ class Routes {
     }
 
     // Perform the rating
-    await Matching.rateUser(new ObjectId(user), targetUserId, like);
+    await Matching.rateUser(userId, targetUserObjectId, like);
+
+    // If both users like each other, create a chat session
+    if (like) {
+      const hasTargetUserLiked = await Matching.hasUserLiked(targetUserObjectId, userId);
+
+      if (hasTargetUserLiked) {
+        // Start a chat between the two users
+        const chat = await Chatting.startSession([userId, targetUserObjectId]);
+        console.log("Chat created between users:", chat);
+
+        return {
+          msg: "Rating submitted! You have a new match!",
+          chat, // Return chat details if a new match is found
+        };
+      }
+    }
 
     return {
       msg: "Rating submitted!",
