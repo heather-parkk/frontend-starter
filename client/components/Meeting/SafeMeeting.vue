@@ -141,7 +141,7 @@ input[type="tel"] {
 .submit-button {
   width: 100%;
   padding: 0.8em;
-  background-color: #007bff;
+  background-color: #6cae75;
   color: white;
   border: none;
   border-radius: 6px;
@@ -152,7 +152,7 @@ input[type="tel"] {
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #558b5a;
 }
 
 .submit-button:focus {

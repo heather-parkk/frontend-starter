@@ -70,7 +70,7 @@ onMounted(fetchMessages);
 .propose-meeting-button {
   margin-top: 1em;
   padding: 0.5em;
-  background-color: #007bff;
+  background-color: #6cae75;
   color: white;
   border: none;
   border-radius: 5px;
@@ -78,6 +78,6 @@ onMounted(fetchMessages);
 }
 
 .propose-meeting-button:hover {
-  background-color: #0056b3;
+  background-color: #558b5a;
 }
 </style>
