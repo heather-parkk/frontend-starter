@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div>
     <LocatingMap />
   </div>
@@ -6,4 +6,4 @@
 
 <script setup lang="ts">
 import LocatingMap from "../components/Locating/LocationDetails.vue";
-</script>
+</script> -->
