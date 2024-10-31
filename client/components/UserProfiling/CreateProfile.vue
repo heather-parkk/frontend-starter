@@ -35,6 +35,20 @@
           <option value="Barcelona">Barcelona</option>
           <option value="Thailand">Thailand</option>
           <option value="London">London</option>
+          <option value="Paris">Paris</option>
+          <option value="New York">New York</option>
+          <option value="Tokyo">Tokyo</option>
+          <option value="Sydney">Sydney</option>
+          <option value="Cape Town">Cape Town</option>
+          <option value="Dubai">Dubai</option>
+          <option value="Rome">Rome</option>
+          <option value="Amsterdam">Amsterdam</option>
+          <option value="Berlin">Berlin</option>
+          <option value="Lisbon">Lisbon</option>
+          <option value="Istanbul">Istanbul</option>
+          <option value="Mexico City">Mexico City</option>
+          <option value="Singapore">Singapore</option>
+          <option value="Buenos Aires">Buenos Aires</option>
         </select>
       </div>
 

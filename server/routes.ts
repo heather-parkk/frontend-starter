@@ -324,7 +324,24 @@ class Routes {
     gender: "man" | "woman" | "nonbinary" | "other",
     age: number,
     travelStyle: "relaxed" | "fast-paced",
-    location: "Barcelona" | "Thailand" | "London",
+    location:
+      | "Barcelona"
+      | "Thailand"
+      | "London"
+      | "Paris"
+      | "New York"
+      | "Tokyo"
+      | "Sydney"
+      | "Cape Town"
+      | "Dubai"
+      | "Rome"
+      | "Amsterdam"
+      | "Berlin"
+      | "Lisbon"
+      | "Istanbul"
+      | "Mexico City"
+      | "Singapore"
+      | "Buenos Aires",
     question_1: "Agree" | "Disagree" | "Neutral",
     question_2: "Agree" | "Disagree" | "Neutral",
   ) {

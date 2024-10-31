@@ -108,33 +108,89 @@ export default class LocatingConcept {
       latitude: 41.3851,
       longitude: 2.1734,
     });
-    this.locationDetails.set("Taipei", {
-      locationName: "Taipei",
-      locationDesc: "The capital of Taiwan, known for its night markets, skyscrapers, and temples.",
-      locationAttr: ["Taipei 101", "Shilin Night Market", "National Palace Museum"],
-      latitude: 25.033,
-      longitude: 121.5654,
-    });
-    this.locationDetails.set("London", {
-      locationName: "London",
-      locationDesc: "The capital of the United Kingdom, steeped in history and modern culture.",
-      locationAttr: ["Big Ben", "Tower of London", "British Museum"],
-      latitude: 51.5074,
-      longitude: -0.1278,
-    });
-    this.locationDetails.set("Shanghai", {
-      locationName: "Shanghai",
-      locationDesc: "China's largest city, known for its towering skyline and vibrant waterfront.",
-      locationAttr: ["The Bund", "Yu Garden", "Oriental Pearl Tower"],
-      latitude: 31.2304,
-      longitude: 121.4737,
+    this.locationDetails.set("Tokyo", {
+      locationName: "Tokyo",
+      locationDesc: "The bustling capital of Japan, famous for its skyscrapers, shopping, and cherry blossoms.",
+      locationAttr: ["Shibuya Crossing", "Tokyo Tower", "Meiji Shrine"],
+      latitude: 35.6895,
+      longitude: 139.6917,
     });
     this.locationDetails.set("Sydney", {
       locationName: "Sydney",
-      locationDesc: "Australia's largest city, known for its Sydney Opera House and coastal lifestyle.",
-      locationAttr: ["Sydney Opera House", "Sydney Harbour Bridge", "Bondi Beach"],
+      locationDesc: "The largest city in Australia, known for the Sydney Opera House and beautiful beaches.",
+      locationAttr: ["Sydney Opera House", "Bondi Beach", "Sydney Harbour Bridge"],
       latitude: -33.8688,
       longitude: 151.2093,
+    });
+    this.locationDetails.set("Cape Town", {
+      locationName: "Cape Town",
+      locationDesc: "A coastal city in South Africa, famous for Table Mountain and vibrant culture.",
+      locationAttr: ["Table Mountain", "Cape Point", "Robben Island"],
+      latitude: -33.9249,
+      longitude: 18.4241,
+    });
+    this.locationDetails.set("Dubai", {
+      locationName: "Dubai",
+      locationDesc: "A luxury destination in the UAE, known for the Burj Khalifa and expansive malls.",
+      locationAttr: ["Burj Khalifa", "Palm Jumeirah", "Dubai Mall"],
+      latitude: 25.2048,
+      longitude: 55.2708,
+    });
+    this.locationDetails.set("Rome", {
+      locationName: "Rome",
+      locationDesc: "The capital of Italy, rich in history with ancient ruins like the Colosseum.",
+      locationAttr: ["Colosseum", "Vatican City", "Trevi Fountain"],
+      latitude: 41.9028,
+      longitude: 12.4964,
+    });
+    this.locationDetails.set("Amsterdam", {
+      locationName: "Amsterdam",
+      locationDesc: "The capital of the Netherlands, known for its canals, museums, and cycling culture.",
+      locationAttr: ["Rijksmuseum", "Anne Frank House", "Canal District"],
+      latitude: 52.3676,
+      longitude: 4.9041,
+    });
+    this.locationDetails.set("Berlin", {
+      locationName: "Berlin",
+      locationDesc: "The capital of Germany, known for its WWII history and vibrant art scene.",
+      locationAttr: ["Brandenburg Gate", "Berlin Wall", "Museum Island"],
+      latitude: 52.52,
+      longitude: 13.405,
+    });
+    this.locationDetails.set("Lisbon", {
+      locationName: "Lisbon",
+      locationDesc: "The hilly, coastal capital city of Portugal known for its tiles and historic tram rides.",
+      locationAttr: ["Belem Tower", "Alfama District", "Jerónimos Monastery"],
+      latitude: 38.7169,
+      longitude: -9.1399,
+    });
+    this.locationDetails.set("Istanbul", {
+      locationName: "Istanbul",
+      locationDesc: "A transcontinental city in Turkey known for its rich history and vibrant bazaars.",
+      locationAttr: ["Hagia Sophia", "Blue Mosque", "Grand Bazaar"],
+      latitude: 41.0082,
+      longitude: 28.9784,
+    });
+    this.locationDetails.set("Mexico City", {
+      locationName: "Mexico City",
+      locationDesc: "The bustling capital of Mexico, known for its historic sites and vibrant culture.",
+      locationAttr: ["Zócalo", "Frida Kahlo Museum", "Chapultepec Castle"],
+      latitude: 19.4326,
+      longitude: -99.1332,
+    });
+    this.locationDetails.set("Singapore", {
+      locationName: "Singapore",
+      locationDesc: "A modern city-state in Southeast Asia, known for its cleanliness and Gardens by the Bay.",
+      locationAttr: ["Gardens by the Bay", "Marina Bay Sands", "Sentosa Island"],
+      latitude: 1.3521,
+      longitude: 103.8198,
+    });
+    this.locationDetails.set("Buenos Aires", {
+      locationName: "Buenos Aires",
+      locationDesc: "The capital of Argentina, known for tango, European architecture, and vibrant culture.",
+      locationAttr: ["Obelisco", "La Boca", "Recoleta Cemetery"],
+      latitude: -34.6037,
+      longitude: -58.3816,
     });
   }
 
