@@ -7,7 +7,24 @@ export interface ProfileDoc extends BaseDoc {
   gender: "man" | "woman" | "nonbinary" | "other";
   age: number; // Between 16 and 99
   travelStyle: "relaxed" | "fast-paced";
-  location: "Barcelona" | "Thailand" | "London";
+  location:
+    | "Barcelona"
+    | "Thailand"
+    | "London"
+    | "Paris"
+    | "New York"
+    | "Tokyo"
+    | "Sydney"
+    | "Cape Town"
+    | "Dubai"
+    | "Rome"
+    | "Amsterdam"
+    | "Berlin"
+    | "Lisbon"
+    | "Istanbul"
+    | "Mexico City"
+    | "Singapore"
+    | "Buenos Aires";
   question_1: "Agree" | "Disagree" | "Neutral";
   question_2: "Agree" | "Disagree" | "Neutral";
   dateCreated: Date;
@@ -119,10 +136,29 @@ export default class UserProfilingConcept {
       throw new BadValuesError("Travel style must be either 'relaxed' or 'fast-paced'.");
     }
 
-    const validLocations = ["Barcelona", "Thailand", "London"];
+    const validLocations = [
+      "Barcelona",
+      "Thailand",
+      "London",
+      "New York City",
+      "Paris",
+      "Bangkok",
+      "Tokyo",
+      "Sydney",
+      "Cape Town",
+      "Dubai",
+      "Rome",
+      "Amsterdam",
+      "Berlin",
+      "Lisbon",
+      "Istanbul",
+      "Mexico City",
+      "Singapore",
+      "Buenos Aires",
+    ];
     if (!validLocations.includes(location)) {
       console.error("Invalid location:", location);
-      throw new BadValuesError("Location must be either 'Barcelona', 'Thailand', or 'London'.");
+      throw new BadValuesError("Location must be within our selected list. More cities to be added soon!");
     }
 
     const validResponses = ["Agree", "Disagree", "Neutral"];

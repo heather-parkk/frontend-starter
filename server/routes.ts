@@ -342,6 +342,7 @@ class Routes {
       | "Mexico City"
       | "Singapore"
       | "Buenos Aires",
+
     question_1: "Agree" | "Disagree" | "Neutral",
     question_2: "Agree" | "Disagree" | "Neutral",
   ) {
